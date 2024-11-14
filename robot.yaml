@@ -21,32 +21,6 @@ arguments:
       required: True 
       defaultValue: 
       description: Category Name
-    - name: color
-      type: String
-      required: True 
-      defaultValue: 
-      description: Color
-    - name: size
-      type: String
-      required: True 
-      defaultValue: 
-      description: Size
-    - name: min_price
-      type: Float
-      required: True 
-      defaultValue: 
-      description: Min Price
-    - name: max_price
-      type: Float
-      required: True 
-      defaultValue: 
-      description: Max Price
-  output:
-    - name: output_file
-      type: File
-      required: False
-      defaultValue: output.xlsx
-      description: Output File
 
 artifactsDir: output
 
