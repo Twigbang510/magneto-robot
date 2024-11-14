@@ -12,15 +12,6 @@ environmentConfigs:
   - environment_darwin_amd64_freeze.yaml
   - conda.yaml
 
-artifactsDir: output
-
-PATH:
-  - .
-PYTHONPATH:
-  - .
-ignoreFiles:
-  - .gitignore
-
 arguments:
   input: 
     - name: category
@@ -48,3 +39,20 @@ arguments:
       required: True 
       defaultValue: 
       description: Max Price
+  output:
+    - name: output_file
+      type: File
+      required: False
+      defaultValue: output.xlsx
+      description: Output File
+      description: Ordered File
+
+artifactsDir: output
+
+PATH:
+  - .
+PYTHONPATH:
+  - .
+ignoreFiles:
+  - .gitignore
+
