@@ -47,7 +47,6 @@ arguments:
       required: False
       defaultValue: output.xlsx
       description: Output File
-      description: Ordered File
 
 artifactsDir: output
 
