@@ -15,12 +15,23 @@ environmentConfigs:
   - conda.yaml
 
 arguments:
-  input: 
-    - name: category
-      type: String 
-      required: True 
-      defaultValue: 
-      description: Category Name
+  input:
+    - name: workItemInput
+      type: String
+      required: True
+      defaultValue:
+      description: Input for work item
+    - name: anken_weekly_directory
+      type: String
+      required: True
+      defaultValue:
+      description: Path to Apato Weekly folder
+  output:
+    - name: workItemOutput
+      type: String
+      required: True
+      defaultValue:
+      description: Output of work item
 
 artifactsDir: output
 
