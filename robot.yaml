@@ -15,23 +15,38 @@ environmentConfigs:
   - conda.yaml
 
 arguments:
-  input:
-    - name: workItemInput
+  input: 
+    - name: category
+      type: String 
+      required: True 
+      defaultValue: 
+      description: Category Name
+    - name: color
       type: String
-      required: True
-      defaultValue:
-      description: Input for work item
-    - name: anken_weekly_directory
+      required: True 
+      defaultValue: 
+      description: Color
+    - name: size
       type: String
-      required: True
-      defaultValue:
-      description: Path to Apato Weekly folder
+      required: True 
+      defaultValue: 
+      description: Size
+    - name: min_price
+      type: Float
+      required: True 
+      defaultValue: 
+      description: Min Price
+    - name: max_price
+      type: Float
+      required: True 
+      defaultValue: 
+      description: Max Price
   output:
-    - name: workItemOutput
-      type: String
-      required: True
+    - name: output_file
+      type: File
+      required: False
       defaultValue:
-      description: Output of work item
+      description: Output File
 
 artifactsDir: output
 
@@ -41,4 +56,3 @@ PYTHONPATH:
   - .
 ignoreFiles:
   - .gitignore
-
