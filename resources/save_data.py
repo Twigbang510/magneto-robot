@@ -12,9 +12,10 @@ def save_order_info(date, email, size, color, quantity, product_list, order_num)
         save_order(wb, date, email, size, color, quantity)
         save_purchasing_info(wb, product_list, quantity, order_num, date)
         save_inventory_info(wb, product_list, quantity)
-        
-        save_workbook(wb, 'data/output_order_detail.xlsx')
+        output_file = 'output/output_order_detail.xlsx'
+        save_workbook(wb, output_file)
         logger.info("Order information saved successfully")
+        return output_file
     except Exception as e:
         logger.error(f"Failed to save information: {str(e)}")
 

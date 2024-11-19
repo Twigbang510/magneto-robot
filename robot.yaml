@@ -20,33 +20,33 @@ arguments:
       type: String 
       required: True 
       defaultValue: 
-      description: Category Name
+      description: The category of products to filter. Available categories are "Jackets," "Hoodies & Sweatshirts," "Tees," and "Tank." You must select one category.
     - name: color
       type: String
       required: True 
       defaultValue: 
-      description: Color
+      description: The desired colors of the product. Available colors include Black, Blue, Gray, Green, Orange, Purple, Red, White, and Yellow. Multiple colors can be selected, e.g., "Black, Gray, etc.""
     - name: size
       type: String
       required: True 
       defaultValue: 
-      description: Size
+      description: The sizes of the product to filter. Available sizes are XS, S, M, L, and XL. Multiple sizes can be selected, e.g., "XS,S , etc".
     - name: min_price
       type: Int
       required: True 
       defaultValue: 
-      description: Min Price
+      description: The minimum price to filter products, ensuring only products above this value are included.
     - name: max_price
       type: Int
       required: True 
       defaultValue: 
-      description: Max Price
+      description: The maximum price to filter products, ensuring only products below this value are included.
   output:
     - name: output_file
       type: File
       required: False
       defaultValue:
-      description: Output File
+      description: The file where the output data will be saved
 
 artifactsDir: output
 
