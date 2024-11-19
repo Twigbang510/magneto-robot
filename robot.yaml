@@ -32,12 +32,12 @@ arguments:
       defaultValue: 
       description: Size
     - name: min_price
-      type: INT
+      type: Int
       required: True 
       defaultValue: 
       description: Min Price
     - name: max_price
-      type: INT
+      type: Int
       required: True 
       defaultValue: 
       description: Max Price
