@@ -1,7 +1,7 @@
 from robocorp.tasks import task
 import logging
 from selenium.webdriver.common.by import By
-from helper import click_on_element_by_locator, wait_until_element_is_visible
+from helper import *
 from driver_manager import get_driver
 
 logger = logging.getLogger(__name__)
@@ -13,8 +13,9 @@ def product_filter(category_id, size, color):
     """
     driver = get_driver()
     go_to_category_page(driver, category_id)
-    choose_size(size)
-    choose_color(color)
+    # click_on_position_of_element(By.ID, 'mode-list', 0)
+    # choose_size(size)
+    # choose_color(color)
 
 def go_to_category_page(driver, category_id):
     """

@@ -36,7 +36,7 @@ def save_purchasing_info(wb, product_list, quantity, order_number, date):
     purchage_ws = wb['Purchasing']
     for product in product_list:
         row = find_next_empty_row(purchage_ws, start_row=3)
-        data = ['Magneto', product['name'], quantity, '', product['price'], date, order_number]
+        data = ['Magneto', product['name'], product['size'], product['color'], quantity, product['status'], product['price'], date, order_number]
         write_row(purchage_ws, row, data)
     logger.info("Products added as new entries in Purchasing worksheet.")
 

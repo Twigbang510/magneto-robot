@@ -30,19 +30,22 @@ Run All Tasks
     ${color} =    Get In Arg Or Fail    color
     ${min_price} =    Get In Arg Or Fail    min_price
     ${max_price} =    Get In Arg Or Fail    max_price
+    ${shipping_option} =    Get Asset     shipping_address
+    ${shipping_option_value} =    Set Variable    ${shipping_option}[value]
+    ${valid_size} =     Check Valid Size Input    ${size}    ${AVAILABLE_SIZE}
+    ${valid_color} =    Check Valid Color Input    ${color}    ${AVAILABLE_COLOR}
 
-    ${valid_size} =     Check Valid Input    ${size}    ${AVAILABLE_SIZE}
-    ${valid_color} =    Check Valid Input    ${color}    ${AVAILABLE_COLOR}
     Initialize Driver
     Open Browser    ${PRODUCT_URL}
     Sign In    ${email}    ${password}
     
     ${category_ui_id} =    Get Category ID    ${category_name}
-    Product Filter   ${category_ui_id}    ${size}    ${color}
+    Product Filter   ${category_ui_id}    ${valid_size}    ${valid_color}
     
-    ${product_list} =    Get Product List    ${min_price}    ${max_price}    ${QUANTITY}    ${size}    ${color}
+
+    ${product_list} =     Get Product List    ${min_price}    ${max_price}    ${QUANTITY}    ${valid_size}    ${valid_color}
     Process Cart        ${QUANTITY}
-    ${order_number} =    Process Checkout    
+    ${order_number} =    Process Checkout    ${shipping_option_value}
 
     ${date_now} =    Get Current Date    result_format='%Y-%m-%d'
     Save Order Info    ${date_now}    ${email}    ${size}    ${color}    ${QUANTITY}    ${product_list}    ${order_number}
