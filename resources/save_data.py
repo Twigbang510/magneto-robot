@@ -2,15 +2,16 @@ from robocorp.tasks import task
 import logging
 from helper import *
 import openpyxl
-
+from datetime import datetime
 logger = logging.getLogger(__name__)
 
 @task
-def save_order_info(date, email, size, color, quantity, product_list, order_num):
+def save_order_info(email, size, color, quantity, product_list, order_num):
     try:
+        date_now = datetime.now().date()
         wb = open_workbook('data/order_detail.xlsx')
-        save_order(wb, date, email, size, color, quantity)
-        save_purchasing_info(wb, product_list, quantity, order_num, date)
+        save_order(wb, date_now, email, size, color, quantity)
+        save_purchasing_info(wb, product_list, quantity, order_num, date_now)
         save_inventory_info(wb, product_list, quantity)
         output_file = 'output/output_order_detail.xlsx'
         save_workbook(wb, output_file)

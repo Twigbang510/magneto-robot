@@ -47,9 +47,9 @@ Run All Tasks
     Process Cart        ${QUANTITY}
     ${order_number} =    Process Checkout    ${shipping_option_value}
 
-    ${date_now} =    Get Current Date    result_format='%Y-%m-%d'
-    Save Order Info    ${date_now}    ${email}    ${size}    ${color}    ${QUANTITY}    ${product_list}    ${order_number}
-
+    ${output_file} =    Save Order Info    ${email}    ${size}    ${color}    ${QUANTITY}    ${product_list}    ${order_number}
+    
+    Set Out Arg    output_file    ${output_file}
 *** Keywords ***
 Get Category ID
     [Arguments]    ${category_name}
