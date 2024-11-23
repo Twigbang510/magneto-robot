@@ -13,12 +13,12 @@ import time
 logger = logging.getLogger(__name__)
 
 @task
-def save_to_gsheet(email, quantity, product_list, order_num, spreadsheet_id, credentials_file, token_file):
+def save_to_gsheet(email, quantity, product_list, order_num, spreadsheet_id, order_info, credentials_file, token_file):
     try:
         service = authenticate_gsheet(credentials_file, token_file)
         date_now = datetime.now().strftime("%Y-%m-%d")
 
-        save_sales_order(service, spreadsheet_id, "Sales Order", date_now, email, order_num, quantity)
+        save_sales_order(service, spreadsheet_id, "Sales Order", date_now, email,order_info,  order_num, quantity)
         save_purchasing(service, spreadsheet_id, "Purchasing", product_list, quantity, order_num, date_now)
         save_inventory(service, spreadsheet_id, "Inventory", product_list, quantity, date_now)
 
@@ -31,23 +31,39 @@ def save_to_gsheet(email, quantity, product_list, order_num, spreadsheet_id, cre
 def authenticate_gsheet(credentials_file, token_file):
     logger.info("Authenticating with Google Sheets API...")
     creds = None
+    
     try:
         creds = Credentials.from_authorized_user_file(token_file, SCOPES)
     except (FileNotFoundError, ValueError):
-        flow = InstalledAppFlow.from_client_secrets_file(credentials_file, SCOPES)
+        flow = InstalledAppFlow.from_client_config(credentials_file, SCOPES)
         creds = flow.run_local_server(port=0)
         with open(token_file, "w") as token:
             token.write(creds.to_json())
 
     return build("sheets", "v4", credentials=creds)
 
-def save_sales_order(service, spreadsheet_id, sheet_name, date, email, order_number, quantity):
-    row = get_next_row(service, spreadsheet_id, sheet_name)
-    if row:
-        update_cell(service, spreadsheet_id, f"{sheet_name}!C{row}", email)
-        update_cell(service, spreadsheet_id, f"{sheet_name}!J{row}", 'Bought')
-        update_cell(service, spreadsheet_id, f"{sheet_name}!K{row}", order_number)
-        logger.info("Sales order updated in Sales Order sheet.")
+def save_sales_order(service, spreadsheet_id, sheet_name, date, email,order_info, order_number, quantity):
+    logger.info(f"Saving sales order : {order_info}")
+    data = [
+        [
+            date,
+            '',
+            email,
+            order_info.get('Category', ''),
+            order_info.get('Size', ''),
+            order_info.get('Color', ''),
+            order_info.get('Min Price', ''),
+            order_info.get('Max Price', ''),
+            quantity,
+            'Bought',
+            order_number
+        ]
+    ]
+    append_data(service, spreadsheet_id, f"{sheet_name}!A:K", data)
+    # update_cell(service, spreadsheet_id, f"{sheet_name}!C{row}", email)
+    # update_cell(service, spreadsheet_id, f"{sheet_name}!J{row}", 'Bought')
+    # update_cell(service, spreadsheet_id, f"{sheet_name}!K{row}", order_number)
+    logger.info("Sales order updated in Sales Order sheet.")
         
 def get_row_by_date(service, spreadsheet_id, sheet_name, target_date):
     """

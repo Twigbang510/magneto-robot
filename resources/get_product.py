@@ -5,6 +5,7 @@ from helper import *
 from driver_manager import get_driver
 import time
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import NoSuchElementException
 
 logger = logging.getLogger(__name__)
 
@@ -88,12 +89,18 @@ def choose_product_options(driver, product_data, quantity, size_list, color_list
                 click_option(color, "swatch-option color")
             set_quantity(driver, quantity)
             wait_for_cart_btn(driver)
-            if not wait_until_element_is_visible(By.ID, 'qty-error'):
-                logger.info("Added product to cart: %s, Size: %s, Color: %s", product_data['name'], size, color)
-                result.append(create_cart_status(product_data, size, color, 'Added to cart'))
-            else :
-                logger.error("Failed to add product to cart: %s, Size: %s, Color: %s", product_data['name'], size, color)
-                result.append(create_cart_status(product_data, size, color, 'Failed to add to cart'))
+            try:
+                qty_error_element = wait_until_element_is_visible(By.ID, 'qty-error',timeout=1)
+                if qty_error_element:
+                    logger.error("Failed to add product to cart: %s, Size: %s, Color: %s", product_data['name'], size, color)
+                    result.append(create_cart_status(product_data, size, color, 'Failed to add to cart'))
+                    continue
+            except NoSuchElementException:
+                pass
+
+            logger.info("Added product to cart: %s, Size: %s, Color: %s", product_data['name'], size, color)
+            result.append(create_cart_status(product_data, size, color, 'Added to cart'))
+
     return result
 def wait_for_cart_btn(driver): 
     """

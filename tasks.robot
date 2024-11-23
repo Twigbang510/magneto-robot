@@ -40,7 +40,8 @@ Run All Tasks
     ${max_price} =    Set Variable    ${order_info}[Max Price]
     ${category_name} =    Set Variable    ${order_info}[Category]
     ${quantity} =    Set Variable    ${order_info}[Quantity]
-
+    ${credentials} =    Get Asset    credentials
+    ${credentials_value} =    Set Variable    ${credentials}[value]
     Initialize Driver
     Redict Url    ${PRODUCT_URL}
 
@@ -59,7 +60,7 @@ Run All Tasks
     ${order_number} =    Process Checkout    ${shipping_option_value}
     ${output_file} =    Save Order Info    ${email}    ${quantity}    ${product_list}    ${order_number}
     Close All Browsers
-    Save To Gsheet    ${email}    ${QUANTITY}    ${product_list}    ${order_number}    1RAWwaWSJ8ZN_Y0oNHkrgK07bNXKr9zdvS3Sb2yTnYQE    credential.json    test
+    Save To Gsheet    ${email}    ${QUANTITY}    ${product_list}    ${order_number}    1RAWwaWSJ8ZN_Y0oNHkrgK07bNXKr9zdvS3Sb2yTnYQE    ${order_info}    ${credentials_value}    test
     Set Out Arg    output_file    ${output_file}
 *** Keywords ***
 Get Category ID
