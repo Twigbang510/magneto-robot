@@ -6,7 +6,7 @@ import time
 RETRIES = 5
 DELAY = 3
 @task
-def open_browser(url):
+def redict_url(url):
     for attempt in range(1, RETRIES + 1):
         try:
             logger.info(f"Attempt {attempt} to open browser.")

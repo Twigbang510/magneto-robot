@@ -7,7 +7,7 @@ from driver_manager import get_driver
 logger = logging.getLogger(__name__)
 
 @task
-def product_filter(category_id, size, color):
+def product_filter(category_id):
     """
     Task to filter products based on category, size, and color.
     """

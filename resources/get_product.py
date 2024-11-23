@@ -88,9 +88,12 @@ def choose_product_options(driver, product_data, quantity, size_list, color_list
                 click_option(color, "swatch-option color")
             set_quantity(driver, quantity)
             wait_for_cart_btn(driver)
-            logger.info("Added product to cart: %s, Size: %s, Color: %s", product_data['name'], size, color)
-            result.append(create_cart_status(product_data, size, color, 'Added to cart'))
-
+            if not wait_until_element_is_visible(By.ID, 'qty-error'):
+                logger.info("Added product to cart: %s, Size: %s, Color: %s", product_data['name'], size, color)
+                result.append(create_cart_status(product_data, size, color, 'Added to cart'))
+            else :
+                logger.error("Failed to add product to cart: %s, Size: %s, Color: %s", product_data['name'], size, color)
+                result.append(create_cart_status(product_data, size, color, 'Failed to add to cart'))
     return result
 def wait_for_cart_btn(driver): 
     """

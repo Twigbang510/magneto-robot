@@ -16,6 +16,11 @@ environmentConfigs:
 
 arguments:
   input: 
+    - name: file_input
+      type: File 
+      required: True 
+      defaultValue: 
+      description: The template file containing the input 
     - name: category
       type: String 
       required: True 

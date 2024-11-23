@@ -13,3 +13,6 @@ dependencies:
     - dop-rpaframework==1.2.4 
     - robocorp-tasks==1.0.0
     - pyautogui==0.9.54
+    - google-api-python-client
+    - google-auth-httplib2
+    - google-auth-oauthlib
