@@ -36,7 +36,7 @@ def navigate_to_next_page(driver):
     Navigate to the next page if available.
     """
     try:
-        next_button = wait_until_element_is_visible(By.CSS_SELECTOR, '.action.next')
+        next_button = driver.find_element(By.CSS_SELECTOR, '.action.next')
         next_button.click()
         logger.info("Navigated to the next page.")
         return True
