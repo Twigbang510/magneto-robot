@@ -69,6 +69,7 @@ def get_row_by_date(service, spreadsheet_id, sheet_name, target_date):
     """
     Find row where the date matches the target date.
     """
+    logger.info("Getting row by date")
     result = service.spreadsheets().values().get(
         spreadsheetId=spreadsheet_id,
         range=f"{sheet_name}!A:A"
@@ -80,24 +81,26 @@ def get_row_by_date(service, spreadsheet_id, sheet_name, target_date):
     return None
 
 def save_purchasing(service, spreadsheet_id, sheet_name, product_list, quantity, order_number, date):
+    logger.info("Saving product data to Purchasing sheet")
+    data = []
     for product in product_list:
-        data = [
-            [
-                'Magneto',
-                product['name'],
-                product['size'],
-                product['color'],
-                quantity,
-                product['status'],
-                product['price'],
-                date,
-                order_number
-            ]
+        product_data = [
+            'Magneto',
+            product['name'],
+            product['size'],
+            product['color'],
+            quantity,
+            product['status'],
+            product['price'],
+            date,
+            order_number
         ]
-        append_data(service, spreadsheet_id, f"{sheet_name}!A:I", data)
+        data.append(product_data)
+    append_data(service, spreadsheet_id, f"{sheet_name}!A:I", data)
     logger.info("Product data saved to Purchasing sheet.")
 
 def save_inventory(service, spreadsheet_id, sheet_name, product_list, quantity, date):
+    logger.info("Updating inventory in Inventory sheet")
     for product in product_list:
         if product['status'] == 'Added to cart':
             row = get_product_row(service, spreadsheet_id, sheet_name, product['name'])
@@ -120,6 +123,10 @@ def get_next_row(service, spreadsheet_id, sheet_name):
     return len(values) + 1
 
 def get_product_row(service, spreadsheet_id, sheet_name, product_name):
+    """
+    Find row where the product name matches the target product name.
+    """
+    logger.info("Getting product row")
     result = service.spreadsheets().values().get(
         spreadsheetId=spreadsheet_id,
         range=f"{sheet_name}!A:A"
@@ -131,6 +138,9 @@ def get_product_row(service, spreadsheet_id, sheet_name, product_name):
     return None
 
 def get_cell_value(service, spreadsheet_id, cell_range):
+    """
+    Get the value of a cell.
+    """
     result = service.spreadsheets().values().get(
         spreadsheetId=spreadsheet_id,
         range=cell_range
@@ -139,6 +149,9 @@ def get_cell_value(service, spreadsheet_id, cell_range):
     return values[0][0] if values else 0
 
 def update_cell(service, spreadsheet_id, cell_range, value):
+    """
+    Update the value of a cell.
+    """
     body = {
         'values': [[value]]
     }
@@ -150,6 +163,9 @@ def update_cell(service, spreadsheet_id, cell_range, value):
     ).execute()
 
 def append_data(service, spreadsheet_id, range_name, data):
+    """
+    Append data to a specified range in a spreadsheet.
+    """
     try:
         body = {"values": data}
         result = service.spreadsheets().values().append(

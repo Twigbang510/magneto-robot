@@ -89,19 +89,23 @@ def choose_product_options(driver, product_data, quantity, size_list, color_list
                 click_option(color, "swatch-option color")
             set_quantity(driver, quantity)
             wait_for_cart_btn(driver)
-            try:
-                qty_error_element = wait_until_element_is_visible(By.ID, 'qty-error',timeout=1)
-                if qty_error_element:
-                    logger.error("Failed to add product to cart: %s, Size: %s, Color: %s", product_data['name'], size, color)
-                    result.append(create_cart_status(product_data, size, color, 'Failed to add to cart'))
-                    continue
-            except NoSuchElementException:
-                pass
-
+            if check_qty_error(driver):
+                logger.error("Failed to add product to cart: %s, Size: %s, Color: %s", product_data['name'], size, color)
+                result.append(create_cart_status(product_data, size, color, 'Failed to add to cart'))
+                continue
             logger.info("Added product to cart: %s, Size: %s, Color: %s", product_data['name'], size, color)
             result.append(create_cart_status(product_data, size, color, 'Added to cart'))
 
     return result
+def check_qty_error(driver):
+    """
+    Check quantity error
+    """
+    try:
+        qty_error_element = driver.find_element(By.ID, 'qty-error')
+        return qty_error_element.is_displayed()
+    except NoSuchElementException:
+        return False
 def wait_for_cart_btn(driver): 
     """
     Wait for the cart button to be clickable.
