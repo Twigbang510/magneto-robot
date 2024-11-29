@@ -60,7 +60,7 @@ Run All Tasks
     ${order_number} =    Process Checkout    ${shipping_option_value}
     ${output_file} =    Save Order Info    ${email}    ${quantity}    ${product_list}    ${order_number}
     Close All Browsers
-    Save To Gsheet    ${email}    ${QUANTITY}    ${product_list}    ${order_number}    1RAWwaWSJ8ZN_Y0oNHkrgK07bNXKr9zdvS3Sb2yTnYQE    ${order_info}    ${credentials_value}    test
+    Save To Gsheet    ${email}    ${QUANTITY}    ${product_list}    ${order_number}    1RAWwaWSJ8ZN_Y0oNHkrgK07bNXKr9zdvS3Sb2yTnYQE    ${order_info}    ${credentials_value}
     Set Out Arg    output_file    ${output_file}
 *** Keywords ***
 Get Category ID
