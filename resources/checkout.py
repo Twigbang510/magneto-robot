@@ -72,6 +72,7 @@ def select_shipping_option(driver):
     Select the first shipping option available.
     """
     try:
+        wait_until_element_is_visible(By.CSS_SELECTOR, "tbody .row input[type='radio']")
         shipping_options = driver.find_elements(By.CSS_SELECTOR, "tbody .row input[type='radio']")
         if shipping_options:
             shipping_options[0].click()
