@@ -4,12 +4,6 @@ import logging
 from helper import *
 import openpyxl
 from datetime import datetime
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-from google.auth import exceptions
-from google.auth.transport.requests import Request
 import os
 
 # Define Google Sheets API scope
@@ -19,14 +13,16 @@ SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 logger = logging.getLogger(__name__)
 
 @task
-def save_to_gsheet(email, quantity, product_list, order_num, spreadsheet_id, order_info, credentials_file, token_file):
+def save_to_gsheet(email, quantity, product_list, order_num, spreadsheet_id, order_info, credentials):
     """
     Save order data to Google Sheets.
     """
     try:
-        service = authenticate_gsheet(credentials_file, token_file)
+        # Authenticate with service account using the credentials dictionary
+        service = authenticate_gsheet(credentials)
         date_now = datetime.now().strftime("%Y-%m-%d")
 
+        # Save the order data to different sheets
         save_sales_order(service, spreadsheet_id, "Sales Order", date_now, email, order_info, order_num, quantity)
         save_purchasing(service, spreadsheet_id, "Purchasing", product_list, quantity, order_num, date_now)
         save_inventory(service, spreadsheet_id, "Inventory", product_list, quantity, date_now)
@@ -36,34 +32,18 @@ def save_to_gsheet(email, quantity, product_list, order_num, spreadsheet_id, ord
         logger.error(f"Failed to save order information to Google Sheets: {str(e)}")
         raise
 
-def authenticate_gsheet(credentials_file, token_file):
+def authenticate_gsheet(credentials):
     """
-    Authenticate and get Google Sheets service client.
+    Authenticate using service account credentials passed as .
     """
-    logger.info("Authenticating with Google Sheets API...")
-    creds = None
-
-    if os.path.exists(token_file):
-        try:
-            creds = Credentials.from_authorized_user_file(token_file, SCOPES)
-        except exceptions.GoogleAuthError as e:
-            logger.warning(f"Error loading credentials: {e}")
-    
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-            logger.info("Token refreshed successfully.")
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(credentials_file, SCOPES)
-            creds = flow.run_local_server(port=0)
-            logger.info("OAuth2 flow completed successfully.")
-        
-        with open(token_file, 'w') as token:
-            token.write(creds.to_json())
-            logger.info(f"New credentials saved to {token_file}")
-
-    client = gspread.authorize(creds)
-    return client
+    logger.info("Authenticating with Google Sheets API using service account...")
+    try:
+        client = gspread.service_account_from_dict(credentials)
+        logger.info("Successfully authenticated with service account.")
+        return client
+    except Exception as e:
+        logger.error(f"Error authenticating with service account: {str(e)}")
+        raise
 
 def save_sales_order(service, spreadsheet_id, sheet_name, date, email, order_info, order_number, quantity):
     """
