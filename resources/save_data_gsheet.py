@@ -1,3 +1,4 @@
+import gspread
 from robocorp.tasks import task
 import logging
 from helper import *
@@ -7,43 +8,70 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from google.auth import exceptions
+from google.auth.transport.requests import Request
+import os
+
+# Define Google Sheets API scope
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
-import time
+# Set up logging
 logger = logging.getLogger(__name__)
 
 @task
 def save_to_gsheet(email, quantity, product_list, order_num, spreadsheet_id, order_info, credentials_file, token_file):
+    """
+    Save order data to Google Sheets.
+    """
     try:
         service = authenticate_gsheet(credentials_file, token_file)
         date_now = datetime.now().strftime("%Y-%m-%d")
 
-        save_sales_order(service, spreadsheet_id, "Sales Order", date_now, email,order_info,  order_num, quantity)
+        save_sales_order(service, spreadsheet_id, "Sales Order", date_now, email, order_info, order_num, quantity)
         save_purchasing(service, spreadsheet_id, "Purchasing", product_list, quantity, order_num, date_now)
         save_inventory(service, spreadsheet_id, "Inventory", product_list, quantity, date_now)
 
         logger.info("Order information successfully saved to Google Sheets.")
-
     except Exception as e:
         logger.error(f"Failed to save order information to Google Sheets: {str(e)}")
         raise
 
 def authenticate_gsheet(credentials_file, token_file):
+    """
+    Authenticate and get Google Sheets service client.
+    """
     logger.info("Authenticating with Google Sheets API...")
     creds = None
+
+    if os.path.exists(token_file):
+        try:
+            creds = Credentials.from_authorized_user_file(token_file, SCOPES)
+        except exceptions.GoogleAuthError as e:
+            logger.warning(f"Error loading credentials: {e}")
     
-    try:
-        creds = Credentials.from_authorized_user_file(token_file, SCOPES)
-    except (FileNotFoundError, ValueError):
-        flow = InstalledAppFlow.from_client_config(credentials_file, SCOPES)
-        creds = flow.run_local_server(port=0)
-        with open(token_file, "w") as token:
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+            logger.info("Token refreshed successfully.")
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(credentials_file, SCOPES)
+            creds = flow.run_local_server(port=0)
+            logger.info("OAuth2 flow completed successfully.")
+        
+        with open(token_file, 'w') as token:
             token.write(creds.to_json())
+            logger.info(f"New credentials saved to {token_file}")
 
-    return build("sheets", "v4", credentials=creds)
+    client = gspread.authorize(creds)
+    return client
 
-def save_sales_order(service, spreadsheet_id, sheet_name, date, email,order_info, order_number, quantity):
-    logger.info(f"Saving sales order : {order_info}")
+def save_sales_order(service, spreadsheet_id, sheet_name, date, email, order_info, order_number, quantity):
+    """
+    Save sales order data to the "Sales Order" sheet.
+    """
+    logger.info(f"Saving sales order: {order_info}")
+    sheet = service.open_by_key(spreadsheet_id).worksheet(sheet_name)
+    
     data = [
         [
             date,
@@ -59,29 +87,16 @@ def save_sales_order(service, spreadsheet_id, sheet_name, date, email,order_info
             order_number
         ]
     ]
-    append_data(service, spreadsheet_id, f"{sheet_name}!A:K", data)
-    # update_cell(service, spreadsheet_id, f"{sheet_name}!C{row}", email)
-    # update_cell(service, spreadsheet_id, f"{sheet_name}!J{row}", 'Bought')
-    # update_cell(service, spreadsheet_id, f"{sheet_name}!K{row}", order_number)
-    logger.info("Sales order updated in Sales Order sheet.")
-        
-def get_row_by_date(service, spreadsheet_id, sheet_name, target_date):
-    """
-    Find row where the date matches the target date.
-    """
-    logger.info("Getting row by date")
-    result = service.spreadsheets().values().get(
-        spreadsheetId=spreadsheet_id,
-        range=f"{sheet_name}!A:A"
-    ).execute()
-    values = result.get('values', [])
-    for idx, row in enumerate(values, start=1):
-        if row and row[0] == target_date:
-            return idx
-    return None
+    sheet.append_rows(data, value_input_option='RAW')
+    logger.info("Sales order updated.")
 
 def save_purchasing(service, spreadsheet_id, sheet_name, product_list, quantity, order_number, date):
-    logger.info("Saving product data to Purchasing sheet")
+    """
+    Save product purchase data to the "Purchasing" sheet.
+    """
+    logger.info("Saving product data to Purchasing sheet.")
+    sheet = service.open_by_key(spreadsheet_id).worksheet(sheet_name)
+
     data = []
     for product in product_list:
         product_data = [
@@ -96,86 +111,30 @@ def save_purchasing(service, spreadsheet_id, sheet_name, product_list, quantity,
             order_number
         ]
         data.append(product_data)
-    append_data(service, spreadsheet_id, f"{sheet_name}!A:I", data)
-    logger.info("Product data saved to Purchasing sheet.")
+    
+    sheet.append_rows(data, value_input_option='RAW')
+    logger.info("Product data saved.")
 
 def save_inventory(service, spreadsheet_id, sheet_name, product_list, quantity, date):
-    logger.info("Updating inventory in Inventory sheet")
+    """
+    Update inventory data in the "Inventory" sheet.
+    """
+    logger.info("Updating inventory in Inventory sheet.")
+    sheet = service.open_by_key(spreadsheet_id).worksheet(sheet_name)
+
     for product in product_list:
         if product['status'] == 'Added to cart':
-            row = get_product_row(service, spreadsheet_id, sheet_name, product['name'])
-            if row:
-                cell_range = f"{sheet_name}!B{row}"
-                current_qty = get_cell_value(service, spreadsheet_id, cell_range)
-                new_qty = int(current_qty) + int(quantity)
-                update_cell(service, spreadsheet_id, cell_range, new_qty)
-            else:
-                data = [[product['name'], quantity]]
-                append_data(service, spreadsheet_id, f"{sheet_name}!A:C", data)
-    logger.info("Inventory updated in Inventory sheet.")
+            try:
+                cell = sheet.find(product['name'])
+                if cell:
+                    current_qty = int(sheet.cell(cell.row, 2).value)
+                    new_qty = current_qty + int(quantity)
+                    sheet.update_cell(cell.row, 2, new_qty)
+                    logger.info(f"Updated inventory for '{product['name']}' (new qty: {new_qty}).")
+                else:
+                    sheet.append_row([product['name'], quantity, date])
+                    logger.info(f"Added new product '{product['name']}' to inventory.")
+            except Exception as e:
+                logger.error(f"Error updating inventory for '{product['name']}': {e}")
 
-def get_next_row(service, spreadsheet_id, sheet_name):
-    result = service.spreadsheets().values().get(
-        spreadsheetId=spreadsheet_id,
-        range=f"{sheet_name}!A:A"
-    ).execute()
-    values = result.get('values', [])
-    return len(values) + 1
-
-def get_product_row(service, spreadsheet_id, sheet_name, product_name):
-    """
-    Find row where the product name matches the target product name.
-    """
-    logger.info("Getting product row")
-    result = service.spreadsheets().values().get(
-        spreadsheetId=spreadsheet_id,
-        range=f"{sheet_name}!A:A"
-    ).execute()
-    values = result.get('values', [])
-    for idx, row in enumerate(values, start=1):
-        if row and row[0] == product_name:
-            return idx
-    return None
-
-def get_cell_value(service, spreadsheet_id, cell_range):
-    """
-    Get the value of a cell.
-    """
-    result = service.spreadsheets().values().get(
-        spreadsheetId=spreadsheet_id,
-        range=cell_range
-    ).execute()
-    values = result.get('values', [])
-    return values[0][0] if values else 0
-
-def update_cell(service, spreadsheet_id, cell_range, value):
-    """
-    Update the value of a cell.
-    """
-    body = {
-        'values': [[value]]
-    }
-    service.spreadsheets().values().update(
-        spreadsheetId=spreadsheet_id,
-        range=cell_range,
-        valueInputOption="RAW",
-        body=body
-    ).execute()
-
-def append_data(service, spreadsheet_id, range_name, data):
-    """
-    Append data to a specified range in a spreadsheet.
-    """
-    try:
-        body = {"values": data}
-        result = service.spreadsheets().values().append(
-            spreadsheetId=spreadsheet_id,
-            range=range_name,
-            valueInputOption="RAW",
-            insertDataOption="INSERT_ROWS",
-            body=body,
-        ).execute()
-        logger.info(f"Appended {result.get('updates').get('updatedRows')} rows to {range_name}")
-    except HttpError as e:
-        logger.error(f"Failed to append data to Google Sheets: {e}")
-        raise
+    logger.info("Inventory updated.")
