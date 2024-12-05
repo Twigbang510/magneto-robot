@@ -9,6 +9,7 @@ Library           resources/checkout.py
 Library           resources/save_data_excel.py
 Library           resources/save_data_gsheet.py
 Library           resources/input_validation.py
+Library           resources/helper.py
 Library           DateTime
 Library           DOP.RPA.ProcessArgument
 Library           DOP.RPA.Asset
@@ -23,12 +24,13 @@ ${PRODUCT_URL}          https://magento.softwaretestingboard.com/
 Run All Tasks 
     ${email} =    Get Asset Or Fail    login    email
     ${password} =    Get Asset Or Fail    login    password
+    ${spreadsheet_id} =    Get Asset Or Fail    gsheets    spreadsheet_id
 
     ${category_name} =    Get In Arg Or Fail    category
     ${size} =    Get In Arg Or Fail    size
     ${color} =    Get In Arg Or Fail    color
-    ${min_price} =    Get In Arg Or Fail    min_price
-    ${max_price} =    Get In Arg Or Fail    max_price
+    # ${min_price} =    Get In Arg Or Fail    min_price
+    # ${max_price} =    Get In Arg Or Fail    max_price
     ${shipping_option} =    Get Asset     shipping_address
     ${shipping_option_value} =    Set Variable    ${shipping_option}[value]
     # ${valid_size} =     Check Valid Size Input    ${size}    ${AVAILABLE_SIZE}
@@ -59,9 +61,10 @@ Run All Tasks
     Process Cart        ${quantity}
     ${order_number} =    Process Checkout    ${shipping_option_value}
     ${output_file} =    Save Order Info    ${email}    ${quantity}    ${product_list}    ${order_number}
-    Close All Browsers
-    Save To Gsheet    ${email}    ${QUANTITY}    ${product_list}    ${order_number}    1RAWwaWSJ8ZN_Y0oNHkrgK07bNXKr9zdvS3Sb2yTnYQE    ${order_info}    ${credentials_value}
+    Quit Driver
+    Save To Gsheet    ${email}    ${QUANTITY}    ${product_list}    ${order_number}    ${spreadsheet_id}    ${order_info}    ${credentials_value}
     Set Out Arg    output_file    ${output_file}
+
 *** Keywords ***
 Get Category ID
     [Arguments]    ${category_name}

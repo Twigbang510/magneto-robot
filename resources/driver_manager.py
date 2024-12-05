@@ -8,6 +8,7 @@ def initialize_driver():
     """Initialize the global Chrome driver with specified options."""
     global driver
     driver = webdriver.Chrome()
+    driver.maximize_window()
     driver.implicitly_wait(10)
     return driver
 

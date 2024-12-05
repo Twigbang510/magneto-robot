@@ -56,12 +56,24 @@ def add_to_cart(driver, product_list, quantity, size_list, color_list):
     full_product_list = []
     for product in product_list:
         driver.get(product['url'])
+        check_ads()
         chosen_products = choose_product_options(driver, product, quantity, size_list, color_list)
         full_product_list.extend(chosen_products)
 
     logger.info("Products added to cart: %s", full_product_list)
     return full_product_list
-
+def check_ads(driver):
+    """
+    Check for Google Ads and remove them.
+    """
+    if (driver.find_element(By.CSS_SELECTOR,"ins.adsbygoogle")):
+        driver.execute_script("""
+            var ads = document.querySelectorAll('ins.adsbygoogle');
+            ads.forEach(function(ad) {
+                ad.remove();
+            });
+        """)
+        logger.info("Removed Ads")
 def choose_product_options(driver, product_data, quantity, size_list, color_list):
     """
     Choose product size and color options and add them to the cart.

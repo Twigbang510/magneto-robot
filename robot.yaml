@@ -48,7 +48,7 @@ arguments:
       description: The maximum price to filter products, ensuring only products below this value are included.
   output:
     - name: output_file
-      type: File
+      type: String
       required: False
       defaultValue:
       description: The file where the output data will be saved
