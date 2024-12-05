@@ -56,7 +56,7 @@ def add_to_cart(driver, product_list, quantity, size_list, color_list):
     full_product_list = []
     for product in product_list:
         driver.get(product['url'])
-        check_ads()
+        check_ads(driver)
         chosen_products = choose_product_options(driver, product, quantity, size_list, color_list)
         full_product_list.extend(chosen_products)
 
